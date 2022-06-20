@@ -1,7 +1,9 @@
 import requests
 from xml.etree import ElementTree as ET
 from time import sleep
-from config import chat_id
+
+import config
+from config import chat_id,token
 
 
 def currency_value_in_rub(balance, data):
@@ -18,7 +20,7 @@ def currency_value_in_rub(balance, data):
 def send_msg(text):
     '''Отправка сообщения в Telegram'''
 
-    token = '1769659001:AAFXvz4eCD9AnGSN-TEG4UkDF9fmw9mWwLs'
+    token = config.token
     url_req = "https://api.telegram.org/bot" + token + "/sendMessage" + "?chat_id=" + chat_id + "&text=" + text
     r = requests.get(url_req)
     print(r.json())

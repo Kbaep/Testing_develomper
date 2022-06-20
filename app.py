@@ -4,7 +4,7 @@ from oauth2client.service_account import ServiceAccountCredentials
 from services import currency_value_in_rub, send_msg
 import datetime
 import psycopg2
-from config import host, user, password, db_name
+from config import host, user, password, db_name, api_json_google
 
 try:
     # connect to exist database
@@ -90,7 +90,7 @@ def send_telegram():
 if __name__ == '__main__':
     while True:
         scope = ['https://spreadsheets.google.com/feeds', 'https://www.googleapis.com/auth/drive']
-        creds = ServiceAccountCredentials.from_json_keyfile_name("flask-processing-api-35863f1e75a2.json", scope)
+        creds = ServiceAccountCredentials.from_json_keyfile_name(api_json_google, scope)
         client = gspread.authorize(creds)
         sheet = client.open("тестовое").sheet1
         data = sheet.get_all_records()
