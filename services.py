@@ -1,9 +1,11 @@
+import os
 from time import sleep
 from xml.etree import ElementTree as ET
 
+import dotenv
 import requests
 
-import config
+dotenv.load_dotenv('.env')
 
 
 def currency_value_in_rub(balance, date):
@@ -27,9 +29,9 @@ def send_msg(text: str):
      передаётся информация об ID чата,
      в который будет отправляться сообщение
     '''
-
-    token = config.token
-    url_req = "https://api.telegram.org/bot" + token + "/sendMessage" +\
-              "?chat_id=" + config.chat_id + "&text=" + text
+    token = os.environ.get('TOKEN')
+    chat_id = os.environ.get('CHAT_ID')
+    url_req = "https://api.telegram.org/bot" + token + "/sendMessage" + \
+              "?chat_id=" + chat_id + "&text=" + text
     requests.get(url_req)
     sleep(4)

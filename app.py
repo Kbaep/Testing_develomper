@@ -1,20 +1,23 @@
 import datetime
+import os
 from time import sleep
 
+import dotenv
 import gspread
 import psycopg2
 from oauth2client.service_account import ServiceAccountCredentials
 
-from config import api_json_google, db_name, host, password, user
 from services import currency_value_in_rub, send_msg
+
+dotenv.load_dotenv('.env')
 
 try:
     # Подключение к базе данных
     connection = psycopg2.connect(
-        host=host,
-        user=user,
-        password=password,
-        database=db_name
+        host=os.environ.get('HOST'),
+        user=os.environ.get('USER'),
+        password=os.environ.get('PASSWORD'),
+        database=os.environ.get('DB_NAME')
     )
 
     with connection.cursor() as cursor:
@@ -53,7 +56,7 @@ def check_table(data: list):
             db_order = cursor.fetchall()
             if len(db_order) != 0:
                 if db_order[0][1] != row['заказ №'] \
-                        or db_order[0][2] != row['срок поставки'] or\
+                        or db_order[0][2] != row['срок поставки'] or \
                         db_order[0][3] != row['стоимость,$']:
                     cursor.execute(
                         "UPDATE testing SET order_id = %s,"
@@ -101,10 +104,10 @@ def send_telegram():
                        ('Нет', 'Нет',))
         all_table = cursor.fetchall()
         for i in all_table:
-            if datetime.datetime.strptime(i[2], '%d.%m.%Y') <\
+            if datetime.datetime.strptime(i[2], '%d.%m.%Y') < \
                     datetime.datetime.now():
                 pass
-                send_msg(f'Прошёл срок по поставке {i[0]}заказа № {i[1]},'
+                send_msg(f'Прошёл срок по поставке заказа № {i[1]},'
                          f' плановая дата поставки {i[2]}')
                 cursor.execute(
                     "UPDATE testing SET delay = %s WHERE id = %s",
@@ -116,8 +119,8 @@ if __name__ == '__main__':
     while True:
         scope = ['https://spreadsheets.google.com/feeds',
                  'https://www.googleapis.com/auth/drive']
-        google_sheets_data = ServiceAccountCredentials.\
-            from_json_keyfile_name(api_json_google, scope)
+        google_sheets_data = ServiceAccountCredentials. \
+            from_json_keyfile_name(os.environ.get('API_JSON_GOOGLE'), scope)
         client = gspread.authorize(google_sheets_data)
         sheet = client.open("тестовое").sheet1
         data = sheet.get_all_records()
