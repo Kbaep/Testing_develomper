@@ -1,15 +1,17 @@
-import requests
-from xml.etree import ElementTree as ET
 from time import sleep
+from xml.etree import ElementTree as ET
+
+import requests
 
 import config
-from config import chat_id,token
 
 
-def currency_value_in_rub(balance, data):
-    ''' Перевод валюту в рубли '''
+def currency_value_in_rub(balance, date):
+    ''' Перевод валюту в рубли. При подключении к ЦБРФ,
+     получаем данные в формате XML и находим USD по ID = R01235.'''
 
-    info = requests.get(f'http://www.cbr.ru/scripts/XML_daily.asp?date_req={data}')
+    info = requests.get(
+        f'http://www.cbr.ru/scripts/XML_daily.asp?date_req={date}')
     structure = ET.fromstring(info.content)
     dollar = structure.find("./*[@ID='R01235']/Value")
     one_dollar = float(dollar.text.replace(',', '.'))
@@ -17,11 +19,17 @@ def currency_value_in_rub(balance, data):
     return round(value_in_rub, 2)
 
 
-def send_msg(text):
-    '''Отправка сообщения в Telegram'''
+def send_msg(text: str):
+    '''Отправка сообщения в Telegram, через подключение по API.
+    В конце используется 4 секундный сон, т.к.
+     в минуту можно отправлять только 20 сообщений.
+    В token, передаётся информация о бот token. В chat_id,
+     передаётся информация об ID чата,
+     в который будет отправляться сообщение
+    '''
 
     token = config.token
-    url_req = "https://api.telegram.org/bot" + token + "/sendMessage" + "?chat_id=" + chat_id + "&text=" + text
-    r = requests.get(url_req)
-    print(r.json())
+    url_req = "https://api.telegram.org/bot" + token + "/sendMessage" +\
+              "?chat_id=" + config.chat_id + "&text=" + text
+    requests.get(url_req)
     sleep(4)
